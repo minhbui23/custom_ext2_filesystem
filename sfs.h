@@ -1,3 +1,4 @@
+
 #ifndef __SFS_H__
 #define __SFS_H__
 #ifndef SFS_MAGIC

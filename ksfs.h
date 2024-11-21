@@ -12,6 +12,7 @@
 #include <linux/slab.h>
 #include <linux/time.h>
 #include <linux/version.h>
+#include<linux/nsproxy.h>
 
 #include "sfs.h"
 
@@ -29,5 +30,22 @@ struct dentry *sfs_mount(struct file_system_type *fs_type, int flags,
 
 // Fill superblock structure
 int sfs_fill_super(struct super_block *sb, void *data, int silent);
+
+static inline struct sfs_superblock *SFS_SB(struct super_block *sb) {
+    return sb->s_fs_info;
+}
+
+// Given the inode_no, calcuate which block in inode table contains the corresponding inode
+static inline uint64_t SFS_INODE_BLOCK_OFFSET(struct super_block *sb, uint64_t inode_no) {
+    struct sfs_superblock *sfs_sb;
+    sfs_sb = SFS_SB(sb);
+    return inode_no / SFS_INODES_PER_BLOCK(sfs_sb);
+}
+static inline uint64_t SFS_INODE_BYTE_OFFSET(struct super_block *sb, uint64_t inode_no) {
+    struct sfs_superblock *sfs_sb;
+    sfs_sb = SFS_SB(sb);
+    return (inode_no % SFS_INODES_PER_BLOCK(sfs_sb)) * sizeof(struct sfs_inode);
+}
+
 
 #endif

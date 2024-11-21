@@ -10,24 +10,18 @@ struct file_system_type sfs_fs_type = {
 
 static int __init sfs_init(void)
 {
-    int ret;
-
-    ret = register_filesystem(&sfs_fs_type);
+    int ret = register_filesystem(&sfs_fs_type);
     if (ret == 0) {
         printk(KERN_INFO "sfs: Filesystem registered successfully\n");
     } else {
         printk(KERN_ERR "sfs: Failed to register filesystem. Error: %d\n", ret);
     }
-
     return ret;
 }
 
-
 static void __exit sfs_exit(void)
 {
-    int ret;
-
-    ret = unregister_filesystem(&sfs_fs_type);
+    int ret = unregister_filesystem(&sfs_fs_type);;
     if (ret == 0) {
         printk(KERN_INFO "sfs: Filesystem unregistered successfully\n");
     } else {
