@@ -1,21 +1,3 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <linux/module.h>
-#include <linux/fs.h>
-#include <linux/slab.h>
-#include <linux/init.h>
-#include <linux/kernel.h>
-#include <linux/pagemap.h>
-#include <linux/mount.h>
-#include <linux/string.h>
-
 #ifndef __SFS_H__
 #define __SFS_H__
 #ifndef SFS_MAGIC
@@ -32,13 +14,6 @@ struct sfs_inode {
     mode_t mode;
     uint64_t inode_no;
     uint64_t data_block_no;
-
-    // TODO struct timespec is defined kenrel space,
-    // but mkfs-sfs.c is compiled in user space
-    /*struct timespec atime;
-    struct timespec mtime;
-    struct timespec ctime;*/
-
     union {
         uint64_t file_size;
         uint64_t dir_children_count;
@@ -68,16 +43,23 @@ static const uint64_t SFS_ROOTDIR_DATA_BLOCK_NO_OFFSET = 0;
 
 /* Helper functions */
 
-static inline uint64_t SFS_INODES_PER_BLOCK_HSB(
-        struct sfs_superblock *sfs_sb) {
+static inline uint64_t SFS_INODES_PER_BLOCK(struct sfs_superblock *sfs_sb) {
     return sfs_sb->blocksize / sizeof(struct sfs_inode);
 }
 
-static inline uint64_t SFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(
-        struct sfs_superblock *sfs_sb) {
+static inline uint64_t SFS_DATA_BLOCK_TABLE_START_BLOCK_NO(struct sfs_superblock *sfs_sb) {
     return SFS_INODE_TABLE_START_BLOCK_NO
-           + sfs_sb->inode_table_size / SFS_INODES_PER_BLOCK_HSB(sfs_sb)
+           + sfs_sb->inode_table_size / SFS_INODES_PER_BLOCK(sfs_sb)
            + 1;
 }
-
+// static inline uint64_t SFS_INODE_BLOCK_OFFSET(struct super_block *sb, uint64_t inode_no) {
+//     struct sfs_superblock *hellofs_sb;
+//     sfs_sb = SFS_SB(sb);
+//     return inode_no / SFS_INODES_PER_BLOCK(hellofs_sb);
+// }
+// static inline uint64_t SFS_INODE_BYTE_OFFSET(struct super_block *sb, uint64_t inode_no) {
+//     struct hellofs_superblock *hellofs_sb;
+//     sfs_sb = SFS_SB(sb);
+//     return (inode_no % SFS_INODES_PER_BLOCK(sfs_sb)) * sizeof(struct sfs_inode);
+// }
 #endif /*__sfs_H__*/
