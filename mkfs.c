@@ -9,11 +9,11 @@ int mkfs_sfs(const char *device_path) {
     // Mở thiết bị
     fd = open(device_path, O_RDWR);
     if (fd == -1) {
-        perror("Lỗi khi mở thiết bị");
+        perror("Error while open device");
         return -1;
     }
 
-    // Xây dựng siêu khối (superblock)
+    // create sfs_superblock
     struct sfs_superblock sfs_sb = {
         .version = 1,
         .magic = SFS_MAGIC,
@@ -24,21 +24,21 @@ int mkfs_sfs(const char *device_path) {
         .data_block_count = 1, // 1 datablock for root 
     };
 
-    // Xây dựng bitmap inode
+    // create bitmap inode
     char inode_bitmap[sfs_sb.blocksize];
     memset(inode_bitmap, 0, sizeof(inode_bitmap));
-    inode_bitmap[0] = 1; // Đánh dấu inode root đã được sử dụng
+    inode_bitmap[0] = 1; // mark inode root inuse
 
-    // Xây dựng bitmap khối dữ liệu
+    // create data block bitmap
     char data_block_bitmap[sfs_sb.blocksize];
     memset(data_block_bitmap, 0, sizeof(data_block_bitmap));
-    data_block_bitmap[0] = 1; // Đánh dấu khối dữ liệu đầu tiên đã được sử dụng
+    data_block_bitmap[0] = 1; // mark the first datablock inuse
 
     // Xây dựng inode gốc (root inode)
     struct sfs_inode root_sfs_inode = {
         .mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH, // Thư mục, quyền truy cập đầy đủ cho user, group và others
         .inode_no = SFS_ROOTDIR_INODE_NO, // Số hiệu inode gốc
-        .data_block_no = SFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(&sfs_sb)
+        .data_block_no = SFS_DATA_BLOCK_TABLE_START_BLOCK_NO(&sfs_sb)
                 + SFS_ROOTDIR_DATA_BLOCK_NO_OFFSET, // Khối dữ liệu cho inode gốc
         .dir_children_count = 0, 
     };

@@ -52,14 +52,5 @@ static inline uint64_t SFS_DATA_BLOCK_TABLE_START_BLOCK_NO(struct sfs_superblock
            + sfs_sb->inode_table_size / SFS_INODES_PER_BLOCK(sfs_sb)
            + 1;
 }
-// static inline uint64_t SFS_INODE_BLOCK_OFFSET(struct super_block *sb, uint64_t inode_no) {
-//     struct sfs_superblock *hellofs_sb;
-//     sfs_sb = SFS_SB(sb);
-//     return inode_no / SFS_INODES_PER_BLOCK(hellofs_sb);
-// }
-// static inline uint64_t SFS_INODE_BYTE_OFFSET(struct super_block *sb, uint64_t inode_no) {
-//     struct hellofs_superblock *hellofs_sb;
-//     sfs_sb = SFS_SB(sb);
-//     return (inode_no % SFS_INODES_PER_BLOCK(sfs_sb)) * sizeof(struct sfs_inode);
-// }
+
 #endif /*__sfs_H__*/
