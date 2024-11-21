@@ -1,18 +1,17 @@
 #ifndef _SFS_H_
 #define _SFS_H_
 
-#include <linux/blkdev.h>
-#include <linux/buffer_head.h>
+//#include <linux/buffer_head.h>
 #include <linux/fs.h>
-#include <linux/init.h>
-#include <linux/namei.h>
+//#include <linux/init.h>
+//#include <linux/namei.h>
 #include <linux/module.h>
-#include <linux/parser.h>
+//#include <linux/parser.h>
 #include <linux/random.h>
-#include <linux/slab.h>
+//#include <linux/slab.h>
 #include <linux/time.h>
 #include <linux/version.h>
-#include<linux/nsproxy.h>
+//#include<linux/nsproxy.h>
 
 #include "sfs.h"
 
