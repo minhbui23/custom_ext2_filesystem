@@ -31,6 +31,8 @@
 #include "acl.h"
 #include "trace.h"
 
+
+
 #ifdef CONFIG_FS_DAX
 static ssize_t ext2_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
 {
@@ -303,9 +305,6 @@ ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 }
 
 
-EXPORT_SYMBOL(ext2_file_write_iter);
-
-
 const struct file_operations ext2_file_operations = {
 	.llseek		= generic_file_llseek,
 	.read_iter	= ext2_file_read_iter,
@@ -333,3 +332,7 @@ const struct inode_operations ext2_file_inode_operations = {
 	.fileattr_get	= ext2_fileattr_get,
 	.fileattr_set	= ext2_fileattr_set,
 };
+
+
+//export function
+EXPORT_SYMBOL(ext2_file_write_iter);

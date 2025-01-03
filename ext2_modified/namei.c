@@ -41,6 +41,7 @@
 #include <linux/ktime.h>
 #include <linux/string.h>
 
+
 static inline int ext2_add_nondir(struct dentry *dentry, struct inode *inode)
 {
 	int err = ext2_add_link(dentry, inode);
@@ -53,11 +54,6 @@ static inline int ext2_add_nondir(struct dentry *dentry, struct inode *inode)
 	return err;
 }
 
-static inline char to_upper(char c) {
-    if (c >= 'a' && c <= 'z')
-        return c - 32; // Chuyển từ 'a'-'z' sang 'A'-'Z'
-    return c;
-}
 
 static inline void set_creation_time(struct inode *inode){
     int err;
@@ -156,15 +152,10 @@ static int ext2_create (struct mnt_idmap * idmap,
 	struct inode *inode;
 	int err;
 
-	char *name= dentry->d_name.name;
-
 	err = dquot_initialize(dir);
 	if (err)
 		return err;
 
-	for (int i = 0; name[i]; i++) 
-        name[i] = to_upper(name[i]);
-    
 
 	inode = ext2_new_inode(dir, mode, &dentry->d_name);
 	if (IS_ERR(inode))
@@ -175,6 +166,7 @@ static int ext2_create (struct mnt_idmap * idmap,
 	ext2_set_file_ops(inode);
 	mark_inode_dirty(inode);
 	set_creation_time(inode);
+	
 	return ext2_add_nondir(dentry, inode);
 }
 
@@ -290,7 +282,6 @@ static int ext2_mkdir(struct mnt_idmap * idmap,
 	struct inode * inode;
 	int err;
 
-	char *name = dentry->d_name.name;
 
 	err = dquot_initialize(dir);
 	if (err)
@@ -298,9 +289,6 @@ static int ext2_mkdir(struct mnt_idmap * idmap,
 
 	inode_inc_link_count(dir);
 	    
-	for (int i = 0; name[i]; i++) 
-        name[i] = to_upper(name[i]);
-    
 
 	inode = ext2_new_inode(dir, S_IFDIR | mode, &dentry->d_name);
 	err = PTR_ERR(inode);
@@ -372,7 +360,6 @@ out:
 	return err;
 }
 
-EXPORT_SYMBOL(ext2_unlink);
 
 static int ext2_rmdir (struct inode * dir, struct dentry *dentry)
 {
@@ -518,3 +505,6 @@ const struct inode_operations ext2_special_inode_operations = {
 	.get_inode_acl	= ext2_get_acl,
 	.set_acl	= ext2_set_acl,
 };
+
+//export function
+EXPORT_SYMBOL(ext2_unlink);
