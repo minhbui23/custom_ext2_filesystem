@@ -18,7 +18,7 @@ struct ext2_quota_info {
 extern DEFINE_HASHTABLE(quota_hash_table, QUOTA_HASH_BITS);
 
 // Khai báo các hàm
-void add_quota(uid_t uid, unsigned long limit);
+void add_quota(uid_t uid, unsigned long limit, unsigned long usage);
 void show_quota_table(void);
 void cleanup_quota_table(void);
 bool check_quota(uid_t uid, unsigned long size);
@@ -32,5 +32,7 @@ extern void write_post_handler(struct kprobe *p, struct pt_regs *regs, unsigned 
 extern struct kprobe kp_unlink;
 extern void unlink_post_handler(struct kprobe *p, struct pt_regs *regs, unsigned long flags);
 
+extern void save_quota_to_file(void);
+extern void load_quota_from_file(void);
 
 #endif // _EXT2_QUOTA_H

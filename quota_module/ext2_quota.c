@@ -4,9 +4,73 @@
 #include <linux/fs.h>
 #include <linux/uidgid.h>
 #include <linux/slab.h>
+#include <linux/uaccess.h>
+#include <linux/path.h>
+#include <linux/file.h>
 #include "ext2_quota.h"
 
-// Định nghĩa kprobe
+#define QUOTA_FILE_PATH "/etc/ext2_quota/quotas"
+
+void save_quota_to_file(void)
+{
+    struct file *file;
+    struct ext2_quota_info *qinfo;
+    int bkt;
+
+    file = filp_open(QUOTA_FILE_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (IS_ERR(file)) {
+        printk(KERN_ERR "Failed to open quota file for writing\n");
+        return;
+    }
+
+    hash_for_each(quota_hash_table, bkt, qinfo, node) {
+        char buffer[128];
+        int len = snprintf(buffer, sizeof(buffer), "%u %lu %lu\n",
+                           qinfo->uid, qinfo->limit, qinfo->usage);
+        if (kernel_write(file, buffer, len, &file->f_pos) < 0) {
+            printk(KERN_ERR "Failed to write quota to file\n");
+        }
+    }
+
+    filp_close(file, NULL);
+}
+
+
+void load_quota_from_file(void)
+{
+    struct file *file;
+    char buffer[128];
+    loff_t pos = 0;
+
+    file = filp_open(QUOTA_FILE_PATH, O_RDONLY, 0);
+    if (IS_ERR(file)) {
+        printk(KERN_WARNING "Quota file not found, starting with empty quota table\n");
+        return;
+    }
+
+    while (kernel_read(file, buffer, sizeof(buffer) - 1, &pos) > 0) {
+        uid_t uid;
+        unsigned long limit, usage;
+
+        buffer[sizeof(buffer) - 1] = '\0'; // Đảm bảo kết thúc chuỗi
+        if (sscanf(buffer, "%u %lu %lu", &uid, &limit, &usage) == 3) {
+            struct ext2_quota_info *qinfo = kmalloc(sizeof(*qinfo), GFP_KERNEL);
+            if (!qinfo) {
+                printk(KERN_ERR "Failed to allocate memory for quota info\n");
+                continue;
+            }
+
+            qinfo->uid = uid;
+            qinfo->limit = limit;
+            qinfo->usage = usage;
+            hash_add(quota_hash_table, &qinfo->node, uid);
+        }
+    }
+
+    filp_close(file, NULL);
+}
+
+// Define kprobe
 struct kprobe kp_write = {
     .symbol_name = "ext2_file_write_iter",
 };
@@ -15,7 +79,7 @@ struct kprobe kp_unlink = {
     .symbol_name = "ext2_unlink",
 };
 
-void add_quota(uid_t uid, unsigned long limit)
+void add_quota(uid_t uid, unsigned long limit, unsigned long usage)
 {
     struct ext2_quota_info *qinfo;
     qinfo = kmalloc(sizeof(*qinfo), GFP_KERNEL);
@@ -24,9 +88,10 @@ void add_quota(uid_t uid, unsigned long limit)
 
     qinfo->uid = uid;
     qinfo->limit = limit;
-    qinfo->usage = 0;
+    qinfo->usage = usage;
     hash_add(quota_hash_table, &qinfo->node, uid);
 }
+
 
 bool check_quota(uid_t uid, unsigned long size)
 {
@@ -143,6 +208,11 @@ static int __init ext2_quota_init(void)
 {
     int ret;
 
+    // Load quota data from file
+    load_quota_from_file();
+
+    show_quota_info(1000);
+
     // Add handler for write
     kp_write.pre_handler = write_pre_handler;
     kp_write.post_handler = write_post_handler;
@@ -168,9 +238,6 @@ static int __init ext2_quota_init(void)
         return ret;
     }
 
-    // Add quota for user 1000 
-    add_quota(1000, 524288000); 
-
 
     printk(KERN_INFO "ext2_quota module loaded successfully.\n");
     return 0;
@@ -178,6 +245,7 @@ static int __init ext2_quota_init(void)
 
 static void __exit ext2_quota_exit(void)
 {
+    save_quota_to_file();
     unregister_kprobe(&kp_write);
     unregister_kprobe(&kp_unlink);
     cleanup_quota_table();

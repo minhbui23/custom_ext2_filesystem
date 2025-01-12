@@ -2,8 +2,7 @@ KDIR := /usr/src/linux-source-6.8.0/linux-source-6.8.0
 PWD := $(shell pwd)
 
 
-obj-m += ext2_quota.o
-
+obj-m += ext2_quota.o 
 
 all:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
