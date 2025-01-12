@@ -139,5 +139,8 @@ This project involves custom modifications to the EXT2 file system to enhance it
    ```
 
 2. Monitor usage and enforce limits dynamically.
-
+   
+   ```bash
+   sudo dmesg | tail -n 30
+   ```
 ---
